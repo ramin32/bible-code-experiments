@@ -3,6 +3,8 @@ import re
 import json
 
 books = None
+sefaria_url = 'http://sefaria.org/api/texts/%s?commentary=0'
+sefaria_url_with_sections = 'http://sefaria.org/api/texts/%s.1-%s?commentary=0'
 
 try:
     with open('books.json') as books_file:
@@ -15,8 +17,6 @@ except IOError:
         {'name': 'Numbers'},
         {'name': 'Deuteronomy'},
     ]
-    sefaria_url = 'http://sefaria.org/api/texts/%s?commentary=0'
-    sefaria_url_with_sections = 'http://sefaria.org/api/texts/%s.1-%s?commentary=0'
 
     for book in books:
         meta_data = requests.get(sefaria_url % book['name']).json()
@@ -28,16 +28,26 @@ except IOError:
         books_json = json.dumps(books, indent=4)
         books_file.write(books_json)
 
+def hebrew_letters_only(string):
+    '''Removes vowelization, whitespace and punctuation.'''
 
-word = u'\u05ea\u05d5\u05e8\u05d4'
-index = 0
-last_occurance = None
-entire_text = []
-for book in books:
-    for chapter_i, chapter in enumerate(book['text']):
-        for verse_i, verse in enumerate(chapter):
-            verse = re.sub(ur'[^\u0590-\u05EA]','', verse) # punctuation
-            verse = re.sub(ur'[\u05b0-\u05c4]', '', verse) # vowels
-            entire_text += [(char, book['name'], chapter_i, verse_i) for char in verse]
+    string = re.sub(ur'[^\u05D0-\u05EA]', '', string) 
+    return string
 
-print entire_text
+def verify_code(book, first_letter, spacing, length):
+    entire_text = hebrew_letters_only(''.join(book['text'][0]))
+    first_index = entire_text.find(first_letter)
+    return entire_text[first_index: first_index + (spacing * length): spacing]
+
+
+print 'Genesis - "Torah" - from first "Tav" - every 50 letters:'
+print verify_code(books[0], u'\u05ea', 50, 4)  
+print 'Exodus - "Torah" - from first "Tav" - every 50 letters:'
+print verify_code(books[1], u'\u05ea', 50, 4)  
+print 'Leviticus - "YHWH" - from first "Yod" - every 8 letters:'
+print verify_code(books[2], u'\u05d9', 8, 4)  
+print 'Numbers - Torah - from first "He" - every 50 letters:'
+print verify_code(books[3], u'\u05d4', 50, 4)  
+print 'Deuteronomy - Torah - from first "He" -- every 50 letters:'
+print verify_code(books[4], u'\u05d4', 50, 4)  
+
