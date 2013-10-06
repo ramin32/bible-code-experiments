@@ -35,19 +35,30 @@ def hebrew_letters_only(string):
     return string
 
 def verify_code(book, first_letter, spacing, length):
+    print book['name']
     entire_text = hebrew_letters_only(''.join(book['text'][0]))
     first_index = entire_text.find(first_letter)
-    return entire_text[first_index: first_index + (spacing * length): spacing]
+    print "Starting from the first %s every %s letters:" % (first_letter, spacing)
+    print "%s: %s" % (first_index, entire_text[first_index: first_index + (spacing * length): spacing])
 
 
-print 'Genesis - "Torah" - from first "Tav" - every 50 letters:'
-print verify_code(books[0], u'\u05ea', 50, 4)  
-print 'Exodus - "Torah" - from first "Tav" - every 50 letters:'
-print verify_code(books[1], u'\u05ea', 50, 4)  
-print 'Leviticus - "YHWH" - from first "Yod" - every 8 letters:'
-print verify_code(books[2], u'\u05d9', 8, 4)  
-print 'Numbers - Torah - from first "He" - every 50 letters:'
-print verify_code(books[3], u'\u05d4', 50, 4)  
-print 'Deuteronomy - Torah - from first "He" -- every 50 letters:'
-print verify_code(books[4], u'\u05d4', 50, 4)  
+verify_code(books[0], u'\u05ea', 50, 4)  
+verify_code(books[1], u'\u05ea', 50, 4)  
+verify_code(books[2], u'\u05d9', 8, 4)  
+verify_code(books[3], u'\u05ea', 50, 4)  
+verify_code(books[4], u'\u05d4', 50, 4)  
+
+entire_text = hebrew_letters_only(''.join([verse for book in books for chapter in book['text'] for verse in chapter]))
+torah_re = re.compile(ur'\u05ea.{49}\u05d5.{49}\u05e8.{49}\u05d4.{49}') 
+
+# all occurences of a "torah"
+result = torah_re.findall(entire_text)
+torah_in_hebrew = u'\u05ea\u05d5\u05e8\u05d4'
+print "%s occurences of %s found in the entire bible." % (len(result), torah_in_hebrew)
+
+# all occurences of a "torah" backwards
+result = torah_re.findall(entire_text[::-1])
+print "%s backward occurences of %s found in the entire bible." % (len(result), torah_in_hebrew)
+
+
 
