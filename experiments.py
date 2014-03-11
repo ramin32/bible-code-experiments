@@ -1,6 +1,7 @@
 import requests
 import re
 import json
+import humanize
 
 books = None
 sefaria_url = 'http://sefaria.org/api/texts/%s?commentary=0'
@@ -34,18 +35,20 @@ def hebrew_letters_only(string):
     string = re.sub(ur'[^\u05D0-\u05EA]', '', string) 
     return string
 
-def verify_code(book, first_letter, spacing, length):
+def verify_code(book, first_letter, spacing, length, index=0):
     entire_text = hebrew_letters_only(''.join(book['text'][0]))
-    first_index = entire_text.find(first_letter)
-    print "Starting from the first %s every %s letters in book %s:" % (first_letter, spacing, book['name'])
+    print entire_text
+    first_index = [m.start() for m in re.finditer(first_letter,entire_text)][index]
+    print "Starting from the %s %s every %s letters in book %s:" % (humanize.ordinal(index+1), first_letter, spacing, book['name'])
+    #print "context: %s" % entire_text[first_index: first_index + (spacing * length)]
     print "%s: %s" % (first_index, entire_text[first_index: first_index + (spacing * length): spacing])
 
 
 verify_code(books[0], u'\u05ea', 50, 4)  
 verify_code(books[1], u'\u05ea', 50, 4)  
 verify_code(books[2], u'\u05d9', 8, 4)  
-verify_code(books[3], u'\u05d4', 50, 4)  
-verify_code(books[4], u'\u05d4', 50, 4)  
+verify_code(books[3], u'\u05d4', 50, 4, index=2)  
+verify_code(books[4], u'\u05d4', 60, 4, index=1)  
 
 entire_text = hebrew_letters_only(''.join([verse for book in books for chapter in book['text'] for verse in chapter]))
 torah_re = re.compile(ur'\u05ea.{49}\u05d5.{49}\u05e8.{49}\u05d4.{49}') 
